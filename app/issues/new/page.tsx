@@ -1,10 +1,11 @@
 'use client'
-import {Button, TextField} from "@radix-ui/themes";
+import {Button, Callout, TextField} from "@radix-ui/themes";
 import SimpleMDE from "react-simplemde-editor";
 import {useForm,Controller} from "react-hook-form";
 import 'easymde/dist/easymde.min.css';
 import axios from "axios";
 import {useRouter} from "next/navigation";
+import {useState} from "react";
 
 interface IssueForm{
     title:string;
@@ -12,13 +13,25 @@ interface IssueForm{
 }
 
 function NewIssuePage() {
+    const [error,setError] = useState('');
     const router=useRouter();
     const {register,control,handleSubmit}=useForm<IssueForm>();
     return (
+        <div>
+            {error &&(
+                <Callout.Root color='red'>
+                    <Callout.Text>{error}</Callout.Text>
+                </Callout.Root>
+            )}
         <form className='max-w-xl space-y-3'
               onSubmit={handleSubmit(async (data)=>{
-                   await axios.post('/api/issues',data)
-                     router.push('/issues')
+                  try {
+                      await axios.post('/api/issues',data)
+                      router.push('/issues')
+                  }catch (error){
+                     setError('Something went wrong');
+                  }
+
               } )}>
             <TextField.Root >
                 <TextField.Input placeholder='Title' {...register('title')}/>
@@ -29,6 +42,7 @@ function NewIssuePage() {
                render={({field})=> <SimpleMDE placeholder='Description' {...field}/>} />
             <Button>Submit New Issue</Button>
         </form>
+        </div>
     );
 }
 
